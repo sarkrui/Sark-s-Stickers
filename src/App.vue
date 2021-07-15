@@ -92,9 +92,10 @@ const stickers: Sticker[] = [];
 const source = import.meta.globEager("/stickers/**/*.gif");
 for (const key in source) {
   const ns = key.split("/");
+  console.log(ns);
   const category = ns[2];
   const tags = [...ns[3].matchAll(/\[(.+?)\]/g)].map((item) => item[1]);
-  const name = ns[3].replaceAll(/\[(.+?)\]/g, "").replace(".gif", "");
+  const name = ns[3].replace(/\[(.+?)\]/g, "").replace(".gif", "");
   categories.add(category);
   stickers.push({
     name,
