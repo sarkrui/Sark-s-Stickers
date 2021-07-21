@@ -1,0 +1,44 @@
+name: Deploy To COS
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Build-And-Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v2
+          with:
+            node-version: '14'
+
+      - name: Cache pnpm modules
+          uses: actions/cache@v2
+          env:
+            cache-name: cache-pnpm-modules
+          with:
+            path: ~/.pnpm-store
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+            restore-keys: |
+              ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.node-version }}- 
+
+      - uses: pnpm/action-setup@v2.0.1
+          with:
+            version: 6.0.2
+            run_install: true
+
+      - name: Build
+        run: pnpm build
+
+      - name: Deploy
+        uses: TencentCloud/cos-action@v1
+        with:
+          secret_id: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
+          secret_key: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
+          cos_bucket: ${{ secrets.COS_BUCKET }}
+          cos_region: ${{ secrets.COS_REGION }}
+          local_path: build
+          remote_path: docroot/static
+          clean: true
+          
+   
